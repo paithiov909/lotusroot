@@ -1,0 +1,10 @@
+^renv$
+^renv\.lock$
+^glmSparse\.Rproj$
+^\.Rproj\.user$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^LICENSE\.md$
+^README\.Rmd$
+^\.github$
