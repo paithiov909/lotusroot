@@ -184,6 +184,7 @@ glmSparse <- function(formula = NULL,
 
 #' Show method for `glpModel`
 #' @rdname show-methods
+#' @param object An object of class `glpModel`.
 #' @aliases show,glpModel,ANY-method
 setMethod(
   "show",

@@ -7,6 +7,9 @@
 \usage{
 \S4method{show}{glpModel}(object)
 }
+\arguments{
+\item{object}{An object of class \code{glpModel}.}
+}
 \description{
 Show method for \code{glpModel}
 }
