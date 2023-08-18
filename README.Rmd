@@ -15,172 +15,23 @@ knitr::opts_chunk$set(
 )
 ```
 
-# glmSparse
+# lotusroot
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/paithiov909/glmSparse/workflows/R-CMD-check/badge.svg)](https://github.com/dmolitor/glmSparse/actions)
 [![pkgdown](https://github.com/paithiov909/glmSparse/workflows/pkgdown/badge.svg)](https://github.com/dmolitor/glmSparse/actions)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-The goal of glmSparse is to provide common methods such as `coef`, `summary`,
-`predict`, `broom::tidy`, etc. for sparse GLMs implemented in the
-[MatrixModels](https://cran.r-project.org/web/packages/MatrixModels/index.html)
-package. For more information on this particular implementation of GLMs,
-see the documentation for `MatrixModels::glm4`. Additionally, glmSparse extends
-`MatrixModels::glm4` to allow the user to both fit GLMs using the formula syntax
-of base R's `glm` function as well as directly passing in a pre-formulated
-sparse model matrix and response vector (sparse matrices as defined by the
-`Matrix` package implementation).
+This package implements a parsnip extension of [dmolitor/glmSparse](https://github.com/dmolitor/glmSparse).
 
-## Motivation
-
-The main motivation for this package is the times where I have wanted to live my
-life peaceably and just run a huge (pretty sparse) OLS or logit regression with
-no trouble, and I don't have the memory on hand to run the regression with a
-standard dense matrix. Unfortunately, I've continued to be surprised by how
-little support there is to do this within existing packages! (If I'm wrong about
-this, I would love to be proved wrong). I discovered the potential solution to
-this problem with `MatrixModels::glm4`, described as an experimental function
-way back in like 2016, with very little support in the way of methods and
-nothing seeming to change since that point. So, I took it upon myself to extend
-this function's functionality and make the methods that I wished it had.
-
-## Alternatives
-
-Here are the alternatives I'm aware of:
-
-- **glmnet::bigGlm**
-
-  This works fine actually for estimating model parameters and making
-  predictions, but because it's not finding a closed-form solution it doesn't
-  out-of-the-box come with features that I would typically want (e.g. standard
-  errors). It also doesn't really have any of the standard methods you come to
-  expect with `glm` such as `fitted`, `resid`, `summary`, etc.
-
-- **speedglm::speedglm**
-
-  This option is confusing to me particularly because it has an argument
-  `sparse` with the following description: "logical. Is the model matrix
-  sparse? By default is NULL, so a quickly sample survey will be made."
-  However, the function does not allow the user to input sparse matrices from
-  the `Matrix` package. Additionally, under the hood it is using `model.matrix`
-  to create the underlying modeling matrix which is the exact step I'm trying
-  to avoid (e.g. by using `Matrix::sparse.model.matrix`). It is possible that
-  this function will allow sparse matrix classes from a different package
-  (e.g. `SparseM`), but even if it does that's not a great solution IMO
-  because the `Matrix` implementation of sparse matrices are by far the most
-  ubiquitous and I don't really want to veer from that.
-
-- **glm**
-
-  Not meant to support sparse matrices.
-
-- **Others**
-
-  I'm potentially missing a good option here out of ignorance?
-
-Assuming I'm not missing out on anything obvious here, none of the options above
-provide a suitable solution to the issue, which is presumably why the
-`MatrixModels::glm4` function was created in the first place!
-
-## Installation
-
-You can install the development version from [GitHub](https://github.com/) with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("dmolitor/glmSparse")
-```
-
-## Example
-
-In this example we'll use the `dplyr::starwars` dataset which has
-characteristics of a bunch of Star Wars characters, and we'll run a simple
-logistic regression to predict the characters' genders. This will showcase the
-alternate modeling interfaces as well as the standard modeling methods.
-
-First, we'll do a tiny bit of data cleaning and we'll also create a sparse
-modeling matrix and response vector.
-```{r Clean Data}
-library(dplyr)
-library(glmSparse)
-library(Matrix)
-
-# Prep the data for modeling
-starwars_clean <- starwars |>
-  select(height:eye_color, gender) |>
-  filter(!is.na(gender)) |>
-  mutate(
-    gender = as.integer(factor(gender)) - 1,
-    across(where(is.character), ~ factor(.x, exclude = NULL)),
-    across(contains("color"), ~ forcats::fct_lump_min(.x, 5)),
-    across(c(height, mass), ~ replace(.x, is.na(.x), median(.x, TRUE)))
-  )
-
-# Pre-create sparse modeling matrix
-starwars_x <- sparse.model.matrix(gender ~ . - 1, starwars_clean)
-starwars_y <- starwars_clean$gender
-```
-
-Now that we've created the modeling data let's estimate a logistic regression
-where `gender` is our response variable. We'll use both the formula and matrix
-interfaces.
-```{r Models}
-## glmSparse
-
-# Formula interface
-logit_formula <- glmSparse(gender ~ ., family = binomial, data = starwars_clean)
-
-# Matrix interface
-logit_matrix <- glmSparse(x = starwars_x, y = starwars_y, family = binomial)
-```
-
-Let's take a quick look at a few of the most helpful methods:
-```{r Model Methods}
-# Print the model
-logit_formula
-
-# Get the summary of the model
-summary(logit_formula)
-
-# Tidy the summary of the model
-tidy(logit_formula, exponentiate = TRUE)
-```
-
-Finally, let's confirm that `glmSparse` and `glm` outputs are identical.
-```{r Compare models}
-all.equal(
-  tidy(logit_formula),
-  tidy(
-    suppressWarnings(
-      glm(gender ~ ., family = binomial, data = starwars_clean)
-    )
-  ),
-  tolerance = 0.05
-)
-```
-
-## Benchmark
-
-Finally, let's do a quick benchmark of `glmSparse` vs the alternatives.
-```{r Benchmark}
-starwars_big <- bind_rows(
-  lapply(
-    1:10000,
-    function(i) starwars_clean
-  )
-)
-starwars_big_x <- sparse.model.matrix(gender ~ . - 1, starwars_big)
-starwars_big_y <- starwars_big$gender
-
-bench::mark(
-  glmSparse(x = starwars_big_x, y = starwars_big_y, family = binomial),
-  speedglm::speedglm(gender ~ ., family = binomial(), data = starwars_big),
-  suppressWarnings(glm(gender ~ ., family = binomial, data = starwars_big)),
-  check = FALSE,
-  iterations = 1
-) |>
-  suppressWarnings() |>
-  select(min:total_time)
-```
+> The goal of glmSparse is to provide common methods such as `coef`, `summary`,
+> `predict`, `broom::tidy`, etc. for sparse GLMs implemented in the
+> [MatrixModels](https://cran.r-project.org/web/packages/MatrixModels/index.html)
+> package. For more information on this particular implementation of GLMs,
+> see the documentation for `MatrixModels::glm4`. Additionally, glmSparse extends
+> `MatrixModels::glm4` to allow the user to both fit GLMs using the formula syntax
+> of base R's `glm` function as well as directly passing in a pre-formulated
+> sparse model matrix and response vector (sparse matrices as defined by the
+> `Matrix` package implementation).
