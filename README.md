@@ -5,8 +5,8 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/paithiov909/glmSparse/workflows/R-CMD-check/badge.svg)](https://github.com/dmolitor/glmSparse/actions)
-[![pkgdown](https://github.com/paithiov909/glmSparse/workflows/pkgdown/badge.svg)](https://github.com/dmolitor/glmSparse/actions)
+[![R-CMD-check](https://github.com/paithiov909/lotusroot/workflows/R-CMD-check/badge.svg)](https://github.com/paithiov909/lotusroot/actions)
+[![pkgdown](https://github.com/paithiov909/lotusroot/workflows/pkgdown/badge.svg)](https://github.com/paithiov909/lotusroot/actions)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License:
