@@ -13,7 +13,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-This package implements a parsnip extension of
+This package implements a parsnip engine of
 [dmolitor/glmSparse](https://github.com/dmolitor/glmSparse).
 
 > The goal of glmSparse is to provide common methods such as `coef`,

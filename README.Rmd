@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-This package implements a parsnip extension of [dmolitor/glmSparse](https://github.com/dmolitor/glmSparse).
+This package implements a parsnip engine of [dmolitor/glmSparse](https://github.com/dmolitor/glmSparse).
 
 > The goal of glmSparse is to provide common methods such as `coef`, `summary`,
 > `predict`, `broom::tidy`, etc. for sparse GLMs implemented in the
