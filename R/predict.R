@@ -14,7 +14,7 @@ predict_lm <- function(object,
                        type = "response",
                        weights = 1,
                        ...) {
-  tt <- terms(as.formula(object@call$formula))
+  tt <- terms(as.formula(object@call$formula), data = object@call$data)
   if (se.fit) {
     stop("`se.fit` == TRUE is not currently supported, sorry :(", call. = FALSE)
   }
@@ -43,11 +43,12 @@ predict_lm <- function(object,
       stopifnot(!is.null(varnames))
     }
     offset <- rep(0, nrow(X))
-    if (!is.null(off.num <- attr(tt, "offset")))
+    if (!is.null(off.num <- attr(tt, "offset"))) {
       for (i in off.num) {
         offset <- offset + newdata[, attr(tt, "variables")[[i + 1]]]
       }
-    if (!is.null(object@call$offset))  {
+    }
+    if (!is.null(object@call$offset)) {
       offset <- offset + eval(object@call$offset)
     }
   }
@@ -79,8 +80,7 @@ predict.glpModel <- predict.glpModel <- function(object,
   type <- match.arg(type)
   if (!se.fit) {
     if (is.null(newdata)) {
-      pred <- switch(
-        type,
+      pred <- switch(type,
         link = object@resp@eta,
         response = object@resp@mu
       )
@@ -91,8 +91,7 @@ predict.glpModel <- predict.glpModel <- function(object,
         se.fit,
         type = if (type == "link") "response" else type
       )
-      switch(
-        type,
+      switch(type,
         response = {
           pred <- object@resp@family$linkinv(pred)
         },
@@ -113,13 +112,12 @@ predict.glpModel <- predict.glpModel <- function(object,
     )
     fit <- pred$fit
     se.fit <- pred$se.fit
-    switch(
-      type,
+    switch(type,
       response = {
         se.fit <- se.fit * abs(object@resp@family$mu.eta(fit))
         fit <- object@resp@family$linkinv(fit)
       },
-      link =
+      link = ,
     )
     pred <- list(fit = fit, se.fit = se.fit, residual.scale = residual.scale)
   }
@@ -156,4 +154,3 @@ reconstruct_formula <- function(object, keep.lhs = TRUE) {
   }
   NULL
 }
-

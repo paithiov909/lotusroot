@@ -80,22 +80,27 @@ glmSparse <- function(formula = NULL,
     offset <- as.numeric(offset)
   }
   if (is.null(family)) {
-    family  <- stats::gaussian
+    family <- stats::gaussian
   }
   sparse <- TRUE
   call <- match.call()
   # If x and y are provided and formula is empty, then use the provided x & y
   if (!is.null(x) && !is.null(y) && is.null(formula)) {
     if (!inherits(x, "dgCMatrix")) {
-      stop(paste0("\nCurrently `x` is only supported as a sparse matrix.\nTo create",
-                  " a sparse model matrix, see `Matrix::sparse.model.matrix`.\n",
-                  "To convert a dense model matrix into sparse form, execute",
-                  " `as(x, 'dgCMatrix')`."),
-           call. = FALSE)
+      stop(
+        paste0(
+          "\nCurrently `x` is only supported as a sparse matrix.\nTo create",
+          " a sparse model matrix, see `Matrix::sparse.model.matrix`.\n",
+          "To convert a dense model matrix into sparse form, execute",
+          " `as(x, 'dgCMatrix')`."
+        ),
+        call. = FALSE
+      )
     }
     if (!is.null(dim(y)) || !is.numeric(y)) {
       stop("`y` must be a numeric vector, not an array or matrix.",
-           call. = FALSE)
+        call. = FALSE
+      )
     }
     if (NROW(y) != nrow(x)) {
       stop("`y` and `x` have differing lengths.", call. = FALSE)
@@ -122,23 +127,33 @@ glmSparse <- function(formula = NULL,
   if (!is.null(x) && !is.null(y) && is.null(formula)) {
     if (is.null(weights)) weights <- NULL
     if (is.null(offset)) offset <- NULL
-    model_resp <- as_respMod(x = x,
-                             y = y,
-                             weights = weights,
-                             offset = offset,
-                             family = family)
+    model_resp <- as_respMod(
+      x = x,
+      y = y,
+      weights = weights,
+      offset = offset,
+      family = family
+    )
     model_pred <- as_predModule(dgC_to_dsparseModel(x))
   } else {
     if (is.null(data)) {
-      stop(paste0("When `formula` is provided, `data` should never be is.null.",
-                  " To use an already-created model matrix and response variable,",
-                  " provide these data in the `x` and `y` arguments, respectively."),
-           call. = FALSE)
+      stop(
+        paste0(
+          "When `formula` is provided, `data` should never be is.null.",
+          " To use an already-created model matrix and response variable,",
+          " provide these data in the `x` and `y` arguments, respectively."
+        ),
+        call. = FALSE
+      )
     }
+    call$data <- data
+
     mf <- match.call(expand.dots = FALSE)
-    m <- match(c("formula", "data", "subset",
-                 "weights", "na.action", "etastart",
-                 "mustart", "offset"), names(mf), 0L)
+    m <- match(c(
+      "formula", "data", "subset",
+      "weights", "na.action", "etastart",
+      "mustart", "offset"
+    ), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
     mf[[1L]] <- as.name("model.frame")
@@ -147,17 +162,19 @@ glmSparse <- function(formula = NULL,
     mt <- attr(mf, "terms")
     model_pred <- as(
       MatrixModels::model.Matrix(mt,
-                                 mf,
-                                 contrasts,
-                                 sparse = sparse,
-                                 drop.unused.levels = drop.unused.levels),
+        mf,
+        contrasts,
+        sparse = sparse,
+        drop.unused.levels = drop.unused.levels
+      ),
       "predModule"
     )
   }
   ans <- new("glpModel",
-             call = call,
-             resp = model_resp,
-             pred = model_pred)
+    call = call,
+    resp = model_resp,
+    pred = model_pred
+  )
   if (doFit) {
     return(fit_glmSparse(ans, doFP = TRUE, control = control))
   } else {
@@ -165,57 +182,67 @@ glmSparse <- function(formula = NULL,
   }
 }
 
+#' Show method for `glpModel`
 #' @rdname show-methods
 #' @aliases show,glpModel,ANY-method
 setMethod(
   "show",
   "glpModel",
   function(object) {
-    digits = max(3L, getOption("digits") - 3L)
+    digits <- max(3L, getOption("digits") - 3L)
     df.null <- object@pred@X@Dim[[1L]] - 1L
     df.residual <- df.null - (object@pred@X@Dim[[2L]] - 1L)
     rank <- as.vector(Matrix::rankMatrix(object@pred@X, method = "qr.R"))
     intercept <- any(object@pred@X@assign == 0)
     wtdmu <- if (intercept) {
-      sum(object@resp@weights * object@resp@y)/sum(object@resp@weights)
+      sum(object@resp@weights * object@resp@y) / sum(object@resp@weights)
     } else {
       object@resp@family$linkinv(object@resp@offset)
     }
     dev <- sum(
-      object@resp@family$dev.resids(y = object@resp@y,
-                               mu = object@resp@mu,
-                               wt = object@resp@weights)
+      object@resp@family$dev.resids(
+        y = object@resp@y,
+        mu = object@resp@mu,
+        wt = object@resp@weights
+      )
     )
     nulldev <- sum(
-      object@resp@family$dev.resids(y = object@resp@y,
-                               mu = wtdmu,
-                               wt = object@resp@weights)
+      object@resp@family$dev.resids(
+        y = object@resp@y,
+        mu = wtdmu,
+        wt = object@resp@weights
+      )
     )
-    aic <- object@resp@family$aic(y = object@resp@y,
-                             n = object@resp@n,
-                             mu = object@resp@mu,
-                             wt = object@resp@weights,
-                             dev = dev) + 2 * rank
+    aic <- object@resp@family$aic(
+      y = object@resp@y,
+      n = object@resp@n,
+      mu = object@resp@mu,
+      wt = object@resp@weights,
+      dev = dev
+    ) + 2 * rank
     cat(
       "\nCall:  ",
       paste(deparse(object@call),
-            sep = "\n",
-            collapse = "\n"),
+        sep = "\n",
+        collapse = "\n"
+      ),
       "\n\n",
       sep = ""
     )
     if (length(MatrixModels::coef(object))) {
       cat("Coefficients")
-      if (is.character(co <- object@pred@X@contrasts))
+      if (is.character(co <- object@pred@X@contrasts)) {
         cat(
           "  [contrasts: ",
           apply(cbind(names(co), co), 1L, paste, collapse = "="),
           "]"
         )
+      }
       cat(":\n")
       print.default(
         format(MatrixModels::coef(object),
-               digits = digits),
+          digits = digits
+        ),
         print.gap = 2,
         quote = FALSE
       )

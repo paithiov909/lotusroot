@@ -1,29 +1,28 @@
-Package: glmSparse
+Package: lotusroot
 Title: Provides methods for sparse GLM models
-Version: 0.0.0.9001
-Authors@R: 
-    person(given = "Daniel",
-           family = "Molitor",
-           role = c("aut", "cre"),
-           email = "molitdj97@gmail.com",
-           comment = c(website = "https://dmolitor.com"))
-Description: This package provides important S3 methods to evaluate and tidy sparse GLM models, as implemented in 
+Version: 0.0.0.9002
+Authors@R: c(
+ .
+   )
+Description: This package provides important S3 methods to evaluate and
+    tidy sparse GLM models, as implemented in
     [MatrixModels](https://cran.r-project.org/web/packages/MatrixModels/MatrixModels.pdf).
-Depends:
-    R (>= 3.0.0)
+License: MIT + file LICENSE
+Depends: 
+    parsnip
 Imports:
     broom,
     dplyr,
-    methods,
     Matrix (>= 1.1-5),
     MatrixModels (>= 0.4),
+    methods,
     stats,
     tibble
-License: MIT + file LICENSE
+Suggests:
+    estimatr
+Config/Needs/test: testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
-Suggests: 
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
+RoxygenNote: 7.2.3

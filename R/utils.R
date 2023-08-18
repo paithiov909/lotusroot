@@ -20,15 +20,17 @@ as_respMod <- function(x,
   if (!is.null(nlmod)) {
     nleta <- eval(nlmod, nlenv)
     grad <- attr(nleta, "gradient")
-    if (is.null(grad))
+    if (is.null(grad)) {
       stop("At present a nonlinear model must return a gradient attribute")
+    }
     N <- n * ncol(grad)
   }
   if (length(dim(y)) == 1) {
     nm <- rownames(y)
     dim(y) <- NULL
-    if (!is.null(nm))
+    if (!is.null(nm)) {
       names(y) <- nm
+    }
   }
   if (is.null(weights)) {
     weights <- rep.int(1, n)
@@ -41,8 +43,10 @@ as_respMod <- function(x,
   if (length(offset) == 1) {
     offset <- rep.int(offset, N)
   } else if (length(offset) != N) {
-    stop(gettextf("number of offsets (%d) should be %d (s * n)",
-                  length(offset), N), domain = "R-Matrix")
+    stop(gettextf(
+      "number of offsets (%d) should be %d (s * n)",
+      length(offset), N
+    ), domain = "R-Matrix")
   }
   ll <- list(weights = unname(weights), offset = unname(offset), wtres = numeric(n))
   if (!is.null(family)) {
@@ -65,22 +69,20 @@ as_respMod <- function(x,
     ll$weights <- unname(ll$weights)
     ll$y <- unname(ll$y)
     ll$eta <- family$linkfun(ll$mu)
-    ll$sqrtrwt <- sqrt(ll$weights/family$variance(ll$mu))
+    ll$sqrtrwt <- sqrt(ll$weights / family$variance(ll$mu))
     ll$sqrtXwt <- matrix(ll$sqrtrwt * family$mu.eta(ll$eta))
     ll$family <- family
     ll <- ll[intersect(names(ll), slotNames("glmRespMod"))]
     ll$n <- unname(rho$n)
     ll$Class <- "glmRespMod"
-  }
-  else {
+  } else {
     ll$sqrtrwt <- sqrt(ll$weights)
     ll$y <- unname(as.numeric(y))
     ll$mu <- numeric(n)
     if (is.null(nlenv)) {
       ll$Class <- "respModule"
       ll$sqrtXwt <- matrix(ll$sqrtrwt)
-    }
-    else {
+    } else {
       ll$Class <- "nlsRespMod"
       ll$nlenv <- nlenv
       ll$nlmod <- quote(nlmod)
@@ -95,9 +97,10 @@ as_respMod <- function(x,
 dgC_to_dsparseModel <- function(x) {
   stopifnot(inherits(x, "dgCMatrix"))
   new("dsparseModelMatrix",
-      x,
-      assign = (1L:ncol(x)) - 1L,
-      contrasts = if (is.null(ctr <- attr(x, "contrasts"))) list() else ctr)
+    x,
+    assign = seq_len(ncol(x)) - 1L,
+    contrasts = if (is.null(ctr <- attr(x, "contrasts"))) list() else ctr
+  )
 }
 
 # Export MatrixModels:::do.defaults
@@ -111,12 +114,16 @@ do.defaults <- function(control,
   matched <- !is.na(mm <- pmatch(names(control <- as.list(control)), dnms))
   if (nomatch.action != "none" && any(!matched)) {
     msg <- paste("The following control arguments did not match any default's names:",
-                 paste(dQuote(names(control)[!matched]), collapse = ", "),
-                 sep = "\n   ")
+      paste(dQuote(names(control)[!matched]), collapse = ", "),
+      sep = "\n   "
+    )
     switch(nomatch.action,
-           warning = warning(msg, call. = FALSE,
-                             immediate. = TRUE),
-           stop = stop(msg, call. = FALSE))
+      warning = warning(msg,
+        call. = FALSE,
+        immediate. = TRUE
+      ),
+      stop = stop(msg, call. = FALSE)
+    )
   }
   if (any(matched)) {
     cc <- control[matched]

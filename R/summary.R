@@ -5,8 +5,10 @@ print.summary.glpModel <- function(x,
                                    symbolic.cor = x$symbolic.cor,
                                    signif.stars = getOption("show.signif.stars"),
                                    ...) {
-  cat("\nCall:\n", paste(deparse(x$call), sep = "\n",
-                         collapse = "\n"), "\n\n", sep = "")
+  cat("\nCall:\n", paste(deparse(x$call),
+    sep = "\n",
+    collapse = "\n"
+  ), "\n\n", sep = "")
   cat("Deviance Residuals: \n")
   if (x$df.residual > 5) {
     x$deviance.resid <- stats::setNames(
@@ -22,9 +24,10 @@ print.summary.glpModel <- function(x,
     df <- if ("df" %in% names(x)) x[["df"]] else NULL
     if (!is.null(df) && (nsingular <- df[3L] - df[1L])) {
       cat("\nCoefficients: (",
-          nsingular,
-          " not defined because of singularities)\n",
-          sep = "")
+        nsingular,
+        " not defined because of singularities)\n",
+        sep = ""
+      )
     } else {
       cat("\nCoefficients:\n")
     }
@@ -32,29 +35,39 @@ print.summary.glpModel <- function(x,
     if (!is.null(aliased <- x$aliased) && any(aliased)) {
       cn <- names(aliased)
       coefs <- matrix(NA,
-                      length(aliased),
-                      4L,
-                      dimnames = list(cn, colnames(coefs)))
+        length(aliased),
+        4L,
+        dimnames = list(cn, colnames(coefs))
+      )
       coefs[!aliased, ] <- x$coefficients
     }
     stats::printCoefmat(coefs,
-                        digits = digits,
-                        signif.stars = signif.stars,
-                        na.print = "NA",
-                        ...)
+      digits = digits,
+      signif.stars = signif.stars,
+      na.print = "NA",
+      ...
+    )
   }
   cat("\n(Dispersion parameter for ", x$family$family,
-      " family taken to be ", format(x$dispersion), ")\n\n",
-      apply(cbind(paste(format(c("Null", "Residual"),
-                               justify = "right"), "deviance:"),
-                  format(unlist(x[c("null.deviance",
-                                    "deviance")]), digits = max(5L, digits + 1L)),
-                  " on", format(unlist(x[c("df.null", "df.residual")])),
-                  " degrees of freedom\n"), 1L, paste, collapse = " "),
-      sep = "")
+    " family taken to be ", format(x$dispersion), ")\n\n",
+    apply(cbind(
+      paste(format(c("Null", "Residual"),
+        justify = "right"
+      ), "deviance:"),
+      format(unlist(x[c(
+        "null.deviance",
+        "deviance"
+      )]), digits = max(5L, digits + 1L)),
+      " on", format(unlist(x[c("df.null", "df.residual")])),
+      " degrees of freedom\n"
+    ), 1L, paste, collapse = " "),
+    sep = ""
+  )
   cat("AIC: ", format(x$aic, digits = max(4L, digits + 1L)),
-      "\n\n", "Number of Fisher Scoring iterations: ",
-      x$iter, "\n", sep = "")
+    "\n\n", "Number of Fisher Scoring iterations: ",
+    x$iter, "\n",
+    sep = ""
+  )
   correl <- x$correlation
   if (!is.null(correl)) {
     p <- NCOL(correl)
@@ -63,8 +76,10 @@ print.summary.glpModel <- function(x,
       if (is.logical(symbolic.cor) && symbolic.cor) {
         print(stats::symnum(correl, abbr.colnames = NULL))
       } else {
-        correl <- format(round(correl, 2L), nsmall = 2L,
-                         digits = digits)
+        correl <- format(round(correl, 2L),
+          nsmall = 2L,
+          digits = digits
+        )
         correl[!lower.tri(correl)] <- ""
         print(correl[-1, -p, drop = FALSE], quote = FALSE)
       }
@@ -87,25 +102,31 @@ summary.glpModel <- function(object,
   df.residual <- df.null - (object@pred@X@Dim[[2L]] - 1L)
   rank <- as.vector(Matrix::rankMatrix(object@pred@X, method = "qr.R"))
   wtdmu <- if (intercept) {
-    sum(object@resp@weights * object@resp@y)/sum(object@resp@weights)
+    sum(object@resp@weights * object@resp@y) / sum(object@resp@weights)
   } else {
     object@resp@family$linkinv(object@resp@offset)
   }
   dev <- sum(
-    object@resp@family$dev.resids(y = object@resp@y,
-                                  mu = object@resp@mu,
-                                  wt = object@resp@weights)
+    object@resp@family$dev.resids(
+      y = object@resp@y,
+      mu = object@resp@mu,
+      wt = object@resp@weights
+    )
   )
   nulldev <- sum(
-    object@resp@family$dev.resids(y = object@resp@y,
-                                  mu = wtdmu,
-                                  wt = object@resp@weights)
+    object@resp@family$dev.resids(
+      y = object@resp@y,
+      mu = wtdmu,
+      wt = object@resp@weights
+    )
   )
-  aic <- object@resp@family$aic(y = object@resp@y,
-                                n = object@resp@n,
-                                mu = object@resp@mu,
-                                wt = object@resp@weights,
-                                dev = dev) + 2 * rank
+  aic <- object@resp@family$aic(
+    y = object@resp@y,
+    n = object@resp@n,
+    mu = object@resp@mu,
+    wt = object@resp@weights,
+    dev = dev
+  ) + 2 * rank
   #################################################
   est.disp <- FALSE
   df.r <- df.residual
@@ -114,9 +135,10 @@ summary.glpModel <- function(object,
       1
     } else if (df.r > 0) {
       est.disp <- TRUE
-      if (any(object@resp@weights == 0))
+      if (any(object@resp@weights == 0)) {
         warning("observations with zero weight not used for calculating dispersion")
-      sum((object@resp@weights * object@resp@wtres^2)[object@resp@weights > 0])/df.r
+      }
+      sum((object@resp@weights * object@resp@wtres^2)[object@resp@weights > 0]) / df.r
     } else {
       est.disp <- TRUE
       NaN
@@ -133,7 +155,7 @@ summary.glpModel <- function(object,
     covmat <- dispersion * covmat.unscaled
     var.cf <- Matrix::diag(covmat)
     s.err <- sqrt(var.cf)
-    tvalue <- coef.p/s.err
+    tvalue <- coef.p / s.err
     dn <- c("Estimate", "Std. Error")
     if (!est.disp) {
       pvalue <- 2 * stats::pnorm(-abs(tvalue))
@@ -150,34 +172,40 @@ summary.glpModel <- function(object,
     df.f <- Qr@Dim[[2]]
   } else {
     coef.table <- matrix(, 0L, 4L)
-    dimnames(coef.table) <- list(NULL, c("Estimate",
-                                         "Std. Error", "t value", "Pr(>|t|)"))
+    dimnames(coef.table) <- list(NULL, c(
+      "Estimate",
+      "Std. Error", "t value", "Pr(>|t|)"
+    ))
     covmat.unscaled <- covmat <- matrix(, 0L, 0L)
     df.f <- length(aliased)
   }
-  keep <- list("call" = object@call,
-               "family" = object@resp@family,
-               "link" = object@resp@family$link,
-               "deviance" = dev,
-               "aic" = aic,
-               "contrasts" = unlist(object@pred@X@contrasts),
-               "df.residual" = df.residual,
-               "null.deviance" = nulldev,
-               "df.null" = df.null,
-               "iter" = object@fitProps$iter)
+  keep <- list(
+    "call" = object@call,
+    "family" = object@resp@family,
+    "link" = object@resp@family$link,
+    "deviance" = dev,
+    "aic" = aic,
+    "contrasts" = unlist(object@pred@X@contrasts),
+    "df.residual" = df.residual,
+    "null.deviance" = nulldev,
+    "df.null" = df.null,
+    "iter" = object@fitProps$iter
+  )
   ans <- c(
     keep,
-    list(deviance.resid = MatrixModels::residuals(object, type = "deviance"),
-         coefficients = coef.table,
-         aliased = aliased,
-         dispersion = dispersion,
-         df = c(rank, df.r, df.f),
-         cov.unscaled = as.matrix(covmat.unscaled),
-         cov.scaled = as.matrix(covmat))
+    list(
+      deviance.resid = MatrixModels::residuals(object, type = "deviance"),
+      coefficients = coef.table,
+      aliased = aliased,
+      dispersion = dispersion,
+      df = c(rank, df.r, df.f),
+      cov.unscaled = as.matrix(covmat.unscaled),
+      cov.scaled = as.matrix(covmat)
+    )
   )
   if (correlation && p > 0) {
     dd <- sqrt(Matrix::diag(covmat.unscaled))
-    ans$correlation <- as.matrix(covmat.unscaled/outer(dd, dd))
+    ans$correlation <- as.matrix(covmat.unscaled / outer(dd, dd))
     ans$symbolic.cor <- symbolic.cor
   }
   class(ans) <- "summary.glpModel"

@@ -73,9 +73,9 @@ test_that("glmSparse and glm weighted binomial models are numerically identical"
 
 test_that("glmSparse and glm binomial models with `offset` specified are numerically identical", {
   offset_vals <- sample(1:2, nrow(iris), replace = TRUE)
-  iris_logit <- glmSparse(x = iris_x, y = iris_y, family = "binomial", offset = rep(1:2, nrow(iris)/2))
+  iris_logit <- glmSparse(x = iris_x, y = iris_y, family = "binomial", offset = rep(1:2, nrow(iris) / 2))
   iris_logit_base <- suppressWarnings(
-    glm(Species ~ . - 1, data = iris_base, family = "binomial", offset = as.numeric(rep(1:2, nrow(iris)/2)))
+    glm(Species ~ . - 1, data = iris_base, family = "binomial", offset = as.numeric(rep(1:2, nrow(iris) / 2)))
   )
   expect_equal(
     unname(coef(iris_logit)),
@@ -123,6 +123,7 @@ test_that(
 test_that(
   "glmSparse and glm binomial predict numerically identical values on unlabelled data with `offset` specified",
   {
+    skip_if_offline()
     mydata <- read.csv("https://stats.idre.ucla.edu/stat/data/binary.csv")
     mydata$rank <- factor(mydata$rank)
     newdata1 <- with(mydata, data.frame(gre = mean(gre), gpa = mean(gpa), rank = factor(1:4)))

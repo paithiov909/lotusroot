@@ -20,11 +20,14 @@ tidy.glpModel <- function(x,
                           exponentiate = FALSE,
                           ...) {
   ret <- tibble::as_tibble(summary(x)$coefficients, rownames = "term")
-  colnames(ret) <- c("term", "estimate", "std.error",
-                     "statistic", "p.value")
+  colnames(ret) <- c(
+    "term", "estimate", "std.error",
+    "statistic", "p.value"
+  )
   coefs <- tibble::enframe(MatrixModels::coef(x),
-                           name = "term",
-                           value = "estimate")
+    name = "term",
+    value = "estimate"
+  )
   ret <- dplyr::left_join(coefs, ret, by = c("term", "estimate"))
   if (conf.int) {
     ci <- confint_terms(x, level = conf.level)
