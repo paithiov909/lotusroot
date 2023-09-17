@@ -3,6 +3,7 @@
 ^lotusroot\.Rproj$
 ^\.Rproj\.user$
 ^_pkgdown\.yml$
+^renovate\.json$
 ^docs$
 ^pkgdown$
 ^LICENSE\.md$
